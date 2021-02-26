@@ -14,8 +14,9 @@ type options struct {
 }
 
 type device struct {
-	serial string
-	name   string
+	serial  string
+	product string
+	model   string
 }
 
 var (
@@ -65,20 +66,20 @@ func run(cmd *cobra.Command, args []string) {
 	}
 
 	for _, d := range devices {
-		cmd.Printf("install %s to device(%s)\n", apk, d.serial)
+		cmd.Printf("Install %s to %s device(%s)\n", apk, d.model, d.serial)
 
 		err = installApk(d.serial, apk)
 		if err != nil {
-			cmd.PrintErrf("failed install %s to device(%s)\n%s\n", apk, d.serial, err)
+			cmd.PrintErrf("Failed to install APK: %s\n", apk, d.serial, err)
 			continue
 		}
-		cmd.Println("install success")
+		cmd.Println("Success")
 
 		if o.reboot {
-			cmd.Println("reboot device(%s)", d.serial)
+			cmd.Println("Reboot device")
 			err = rebootDevice(d.serial)
 			if err != nil {
-				cmd.PrintErrf("failed reboot device(%s)\n%s\n", d.serial, err)
+				cmd.PrintErrf("Failed to reboot device(%s): %s\n", d.serial, err)
 				continue
 			}
 		}
@@ -86,7 +87,7 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func collectAndroidDevice() ([]device, error) {
-	cmd := exec.Command("adb", "devices")
+	cmd := exec.Command("adb", "devices", "-l")
 	r, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
@@ -102,9 +103,17 @@ func collectAndroidDevice() ([]device, error) {
 			continue
 		}
 		fields := strings.Fields(s)
+		// 0: serial
+		// 1; device
+		// 2: usb:XXXXX
+		// 3: product:XXXXX
+		// 4: model:XXXXX
+		// 5: device:XXXXX
+		// 6: transport_id:[0-9]+
 		d := device{
-			serial: fields[0],
-			name:   fields[1],
+			serial:  fields[0],
+			product: strings.Split(fields[3], ":")[1],
+			model:   strings.Split(fields[4], ":")[1],
 		}
 		devices = append(devices, d)
 	}
