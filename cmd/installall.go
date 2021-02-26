@@ -98,7 +98,7 @@ func collectAndroidDevice() ([]device, error) {
 	devices := []device{}
 	for scanner.Scan() {
 		s := strings.TrimSpace(scanner.Text())
-		if s == "" || strings.HasPrefix(s, "List of devices") {
+		if s == "" || strings.HasPrefix(s, "* ") || strings.HasPrefix(s, "List of devices") {
 			continue
 		}
 		fields := strings.Fields(s)
