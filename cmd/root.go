@@ -18,6 +18,7 @@ func NewCmdRoot() *cobra.Command {
 	// cmd.PersistentFlags().StringVar(&cfgFile, "confg", "config.yaml", "config file (default is config.yaml)")
 
 	cmd.AddCommand(NewCmdInstallAll())
+	cmd.AddCommand(NewCmdList())
 	return cmd
 }
 
